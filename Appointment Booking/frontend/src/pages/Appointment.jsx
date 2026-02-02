@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useContext } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
@@ -6,6 +6,7 @@ import { assets } from '../assets/assets'
 import RelatedDoctors from '../components/RelatedDoctors'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+
 
 const Appointment = () => {
 
@@ -28,6 +29,7 @@ const Appointment = () => {
   }
 
   const getAvailableDocSlots = async () => {
+    if (!docInfo) return
     setDocSlots([])
 
     let today = new Date()
@@ -62,7 +64,7 @@ const Appointment = () => {
         const slotDate = day + "_" + month + "_" + year
         const slotTime = formattedTime
 
-        const isSlotAvailable = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(slotTime) ? false : true
+        const isSlotAvailable = docInfo?.slots_booked?.[slotDate]?.includes(slotTime) ? false : true
 
         if(isSlotAvailable) {
           //add slot to array
@@ -86,19 +88,44 @@ const Appointment = () => {
     }
 
     try {
+      if (!docSlots || !docSlots.length) {
+        toast.error('No slots available for this doctor')
+        return
+      }
 
-      const date = docSlots[slotIndex][0].dateTime
+      let daySlots = docSlots[slotIndex] || []
+      let selectedSlot = null
+
+      if (!daySlots.length) {
+        const fallbackDayIndex = docSlots.findIndex(s => s && s.length > 0)
+        if (fallbackDayIndex === -1) {
+          toast.error('No slots available for this doctor')
+          return
+        }
+        const fallbackSlot = docSlots[fallbackDayIndex][0]
+        setSlotIndex(fallbackDayIndex)
+        setSlotTime(fallbackSlot.time)
+        selectedSlot = fallbackSlot
+      } else {
+        selectedSlot = daySlots.find(s => s.time === slotTime) || daySlots[0]
+        if (!selectedSlot) {
+          toast.error('Please select a slot')
+          return
+        }
+      }
+
+      const date = selectedSlot.dateTime
       let day = date.getDate()
       let month = date.getMonth() + 1
       let year = date.getFullYear()
 
       const slotDate = day + "_" + month + "_" + year
-      // console.log(slotDate)
-      const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
+      const chosenTime = selectedSlot.time
+      const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime: chosenTime }, { headers: { token } })
       if (data.success) {
         toast.success(data.message)
         getDoctorsData()
-        navigate('/my-appointments')
+        navigate(`/my-appointments?doc=${docId}`)
       } else {
         toast.error(data.message)
       }
@@ -118,6 +145,16 @@ const Appointment = () => {
 
   useEffect(() => {
     console.log(docSlots);
+
+  }, [docSlots])
+
+  useEffect(() => {
+    if (!docSlots || !docSlots.length) return
+    const firstAvailableDay = docSlots.findIndex(s => s && s.length > 0)
+    if (firstAvailableDay !== -1) {
+      setSlotIndex(firstAvailableDay)
+      setSlotTime(docSlots[firstAvailableDay][0].time)
+    }
 
   }, [docSlots])
 
@@ -151,7 +188,7 @@ const Appointment = () => {
         <p>Booking Slots</p>
         <div className='flex gap-3 items-center w-full overflow-x-scroll mt-4'>
           {
-            docSlots.length && docSlots.map((item, index) => (
+            docSlots.map((item, index) => (
               <div onClick={() => setSlotIndex(index)} className={`text-center py-6 min-w-16 rounded-full cursor-pointer ${slotIndex === index ? 'bg-primary text-white' : 'border border-gray-200'}`} key={index}>
                 <p>{item[0] && daysOfWeek[item[0].dateTime.getDay()]}</p>
                 <p>{item[0] && item[0].dateTime.getDate()}</p>
@@ -161,7 +198,7 @@ const Appointment = () => {
         </div>
 
         <div className='flex items-center gap-3 w-full overflow-x-scroll mt-4'>
-          {docSlots.length && docSlots[slotIndex].map((item, index) => (
+          {(docSlots[slotIndex] || []).map((item, index) => (
             <p onClick={() => setSlotTime(item.time)} className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer ${item.time === slotTime ? 'bg-primary text-white' : 'border border-gray-200'}`} key={index}>
               {item.time.toLowerCase()}
             </p>

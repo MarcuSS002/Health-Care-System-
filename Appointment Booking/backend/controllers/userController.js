@@ -1,4 +1,5 @@
 import express from 'express'
+import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import userModel from '../models/userModel.js'
 import jwt from 'jsonwebtoken'
@@ -124,7 +125,12 @@ const bookAppointment = async (req,res) => {
     try {
 
         const { userId, docId, slotDate, slotTime } = req.body
-        
+
+        // validate doctor id before querying to avoid Cast errors
+        if (!mongoose.isValidObjectId(docId)) {
+            return res.json({ success: false, message: 'Invalid doctor id' })
+        }
+
         const docData = await doctorModel.findById(docId).select('-password')
         if(!docData.available) {
             return res.json({success: false, message: 'Doctor not available'})

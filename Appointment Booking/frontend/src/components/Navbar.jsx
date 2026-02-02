@@ -28,7 +28,7 @@ const Navbar = () => {
         {
           token ?
             <div className='flex items-center gap-2 px-3 py-1 cursor-pointer group relative hover:bg-indigo-50 rounded-full'>
-              <img className='w-8 rounded-full' src={userData.image} alt="Profile pic" />
+              <img className='w-8 rounded-full' src={userData?.image || assets.profile_pic} alt="Profile pic" />
               <img className='w-2.5' src={assets.dropdown_icon} alt="" />
               <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-10 hidden group-hover:block'>
                 <div className='min-w-48 bg-stone-100 rounded flex flex-col gap-2 p-4'>

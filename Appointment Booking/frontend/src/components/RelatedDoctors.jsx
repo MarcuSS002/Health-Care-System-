@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { AppContext } from '../context/AppContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -22,8 +22,8 @@ const RelatedDoctors = ({ docId, speciality }) => {
             <p className='sm:w-1/3 text-sm text-center'>Simply browse through our extensive list of trusted doctors.</p>
             <div className='w-full grid grid-cols-auto gap-4 pt-5 gap-y-6 px-3 sm:px-0'>
                 {relDoc.slice(0, 5).map((item, index) => (
-                    <div key={index} onClick={()=> {navigate(`/appointment/${item._id}`); scrollTo(0,0)}} className='border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500'>
-                        <img className='bg-blue-50' src={item.image} alt="" />
+                    <div key={index} onClick={()=> {navigate(`/appointment/${item._id}`); scrollTo(0,0)}} className='border border-blue-200 rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500 flex flex-col items-center'>
+                        <img className='bg-blue-50 block mx-auto w-28 h-28 object-cover rounded-full mt-4' src={item.image} alt="" />
                         <div className='p-4'>
                             <div className='flex items-center gap-2 text-sm text-center text-green-500'>
                                 <p className='h-2 w-2 bg-green-500 rounded-full'></p><p>Available</p>
@@ -34,7 +34,7 @@ const RelatedDoctors = ({ docId, speciality }) => {
                     </div>
                 ))}
             </div>
-            <button onClick={() => { navigate('/doctors'); scrollTo(0,0)}} className='bg-blue-50 mt-8 py-2 px-6 rounded-full'>more</button>
+            <button onClick={() => { navigate('/doctors'); scrollTo(0,0)}} className='bg-blue-50 mt-8 py-2 px-6 rounded-full'>More</button>
         </div>
     )
 }

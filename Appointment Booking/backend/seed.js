@@ -60,6 +60,29 @@ const seed = async () => {
 				date: Date.now(),
 				slots_booked: {}
 			}
+			,
+			{
+				name: 'Dr. Amit Sharma',
+				email: 'amit.sharma@example.com',
+				password: hashed,
+				image: 'https://randomuser.me/api/portraits/men/32.jpg',
+				speciality: 'Gastroenterologist',
+				degree: 'MBBS, MD',
+				experience: '12 Years',
+				about: 'Experienced gastroenterologist with focus on digestive health and patient-centered care.',
+				fees: 800,
+				address: { line1: 'Clinic Street', line2: 'Mumbai' },
+				date: Date.now(),
+				slots_booked: {
+					"1_2_2026": [
+						"04:00 PM",
+						"05:30 PM"
+					],
+					"2_2_2026": [
+						"10:30 AM"
+					]
+				}
+			}
 		]
 
 		const created = await doctorModel.insertMany(sampleDoctors)

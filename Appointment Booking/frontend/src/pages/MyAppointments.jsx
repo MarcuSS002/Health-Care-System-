@@ -51,7 +51,7 @@ const MyAppointments = () => {
     if (token) getUserAppointments()
   }, [token])
 
-  // 🔥 keep only latest appointment per doctor
+  //  keep only latest appointment per doctor
   const latestAppointmentByDoctor = Object.values(
     appointments.reduce((acc, appt) => {
       if (

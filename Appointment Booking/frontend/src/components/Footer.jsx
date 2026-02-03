@@ -9,7 +9,9 @@ const Footer = () => {
                 <div>
                     <img className='mb-5 w-40' src={assets.logo} alt="" />
                     <p className='w-full md:w-2/3 text-gray-600 leading-6'>
-                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+                   Prescripto is a web application that helps users track and manage their health easily.
+It allows users to monitor key health data, view reports, and stay updated about their health status in one place.
+The system aims to make health tracking simple, organized, and accessible anytime, helping users take better care of themselves.
                     </p>
                 </div>
                 {/* ---------Center------- */}
@@ -34,7 +36,7 @@ const Footer = () => {
             {/* {Copyright Section} */}
             <div>
                 <hr />
-                <p className='py-5 text-sm text-center'>Copyright 2024 @ Greatstack.dev - All Right Reserved.</p>
+                <p className='py-5 text-sm text-center'>Copyright {new Date().getFullYear()} @ Harsh's.dev - All Rights Reserved.</p>
             </div>
         </div>
     )

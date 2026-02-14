@@ -21,7 +21,8 @@ export const createOrder = async (req, res) => {
         const order = await razorpayInstance.orders.create(options)
         return res.json({ success: true, order, key: process.env.RAZORPAY_KEY_ID })
     } catch (err) {
-        return res.status(500).json({ success: false, message: err.message })
+        console.error('createOrder error:', err)
+        return res.status(500).json({ success: false, message: err && err.message ? err.message : String(err) })
     }
 }
 

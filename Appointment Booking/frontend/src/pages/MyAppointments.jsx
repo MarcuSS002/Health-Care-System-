@@ -28,6 +28,74 @@ const MyAppointments = () => {
     }
   }
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (document.getElementById('razorpay-sdk')) return resolve(true)
+      const script = document.createElement('script')
+      script.id = 'razorpay-sdk'
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.onload = () => resolve(true)
+      script.onerror = () => resolve(false)
+      document.body.appendChild(script)
+    })
+  }
+
+  const handlePay = async (appointment) => {
+    if (!token) return toast.warn('Login to pay')
+
+    try {
+      const loaded = await loadRazorpayScript()
+      if (!loaded) return toast.error('Failed to load payment gateway')
+
+      const { data } = await axios.post(
+        backendUrl + '/api/payment/create-order',
+        { amount: appointment.amount },
+        { headers: { token } }
+      )
+
+      if (!data.success) return toast.error('Failed to create order')
+
+      const { order, key } = data
+
+      const options = {
+        key: key,
+        amount: order.amount,
+        currency: order.currency,
+        name: appointment.docData?.name || 'Appointment',
+        description: 'Appointment fee',
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            const verify = await axios.post(
+              backendUrl + '/api/payment/verify',
+              {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                appointmentId: appointment._id
+              },
+              { headers: { token } }
+            )
+
+            if (verify.data.success) {
+              toast.success('Payment successful')
+              getUserAppointments()
+            } else {
+              toast.error('Payment verification failed')
+            }
+          } catch (err) {
+            toast.error('Payment verification error')
+          }
+        }
+      }
+
+      const rzp = new window.Razorpay(options)
+      rzp.open()
+    } catch (err) {
+      toast.error('Payment error')
+    }
+  }
+
   const cancelAppointment = async (appointmentId) => {
     try {
       const { data } = await axios.post(
@@ -104,7 +172,7 @@ const MyAppointments = () => {
           <div className="flex flex-col gap-2 justify-end">
             {!item.cancelled && !item.isCompleted && !item.payment ? (
               <>
-                <button className="sm:min-w-48 py-2 border text-sm hover:bg-primary hover:text-white transition">
+                <button onClick={() => handlePay(item)} className="sm:min-w-48 py-2 border text-sm hover:bg-primary hover:text-white transition">
                   Pay Online
                 </button>
                 <button

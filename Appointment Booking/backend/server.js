@@ -6,6 +6,7 @@ import connectCloudinary from './config/cloudinary.js'
 import adminRouter from './routes/adminRoutes.js'
 import doctorRouter from './routes/doctorRoutes.js'
 import userRouter from './routes/userRoutes.js'
+import paymentRouter from './routes/paymentRoutes.js'
 
 
 //app config
@@ -22,12 +23,27 @@ app.use(cors())
 app.use('/api/admin', adminRouter)
 app.use('/api/doctor', doctorRouter)
 app.use('/api/user', userRouter)
+app.use('/api/payment', paymentRouter)
 
 
 app.get('/', (req, res) => {
     res.send("Api working")
 })
 
-app.listen(port, () => {
-    console.log(`Server Listening on port ${port}`)
-})
+const startServer = (p) => {
+    const server = app.listen(p, () => {
+        console.log(`Server Listening on port ${p}`)
+    })
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.error(`Port ${p} in use, trying ${p + 1}...`)
+            setTimeout(() => startServer(p + 1), 500)
+        } else {
+            console.error('Server error:', err)
+            process.exit(1)
+        }
+    })
+}
+
+startServer(port)

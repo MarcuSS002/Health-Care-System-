@@ -1,6 +1,8 @@
 import express, { json } from 'express'
 import cors from 'cors'
-import 'dotenv/config'
+import dotenv from 'dotenv'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import connectDB from './config/mongodb.js'
 import connectCloudinary from './config/cloudinary.js'
 import adminRouter from './routes/adminRoutes.js'
@@ -8,10 +10,13 @@ import doctorRouter from './routes/doctorRoutes.js'
 import userRouter from './routes/userRoutes.js'
 import paymentRouter from './routes/paymentRoutes.js'
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+dotenv.config({ path: path.join(__dirname, '.env') })
 
 //app config
 const app = express()
-const port = process.env.PORT || 3000
+const port = Number(process.env.PORT) || 3001
 connectDB()
 connectCloudinary()
 
@@ -30,20 +35,6 @@ app.get('/', (req, res) => {
     res.send("Api working")
 })
 
-const startServer = (p) => {
-    const server = app.listen(p, () => {
-        console.log(`Server Listening on port ${p}`)
-    })
-
-    server.on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-            console.error(`Port ${p} in use, trying ${p + 1}...`)
-            setTimeout(() => startServer(p + 1), 500)
-        } else {
-            console.error('Server error:', err)
-            process.exit(1)
-        }
-    })
-}
-
-startServer(port)
+app.listen(port, () => {
+    console.log(`Server Listening on port ${port}`)
+})

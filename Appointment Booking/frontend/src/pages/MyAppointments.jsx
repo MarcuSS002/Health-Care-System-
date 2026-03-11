@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
@@ -9,6 +9,7 @@ const MyAppointments = () => {
   const { backendUrl, token } = useContext(AppContext)
   const [appointments, setAppointments] = useState([])
   const location = useLocation()
+  const navigate = useNavigate()
 
   const searchParams = new URLSearchParams(location.search)
   const filterDocId = searchParams.get('doc')
@@ -105,7 +106,7 @@ const MyAppointments = () => {
       )
 
       if (data.success) {
-        toast.success(data.message)
+        toast.success('Appointment Cancelled')
         getUserAppointments()
       } else {
         toast.error(data.message)
@@ -115,9 +116,26 @@ const MyAppointments = () => {
     }
   }
 
-  useEffect(() => {
+  useEffect( () => {
     if (token) getUserAppointments()
   }, [token])
+
+  useEffect(() => {
+  const params = new URLSearchParams(location.search)
+  const shouldShowBookedToast = params.get('booked') === '1'
+
+  if (!shouldShowBookedToast) {
+    toast.success('Appointment Booked')
+
+    params.delete('booked')
+    const nextSearch = params.toString()
+
+    navigate(
+      `${location.pathname}${nextSearch ? `?${nextSearch}` : ''}`,
+      { replace: true }
+    )
+  }
+}, [])
 
   //  keep only latest appointment per doctor
   const latestAppointmentByDoctor = Object.values(

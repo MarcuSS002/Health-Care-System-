@@ -2,13 +2,23 @@ import Razorpay from 'razorpay'
 import crypto from 'crypto'
 import appointmentModel from '../models/appointmentModel.js'
 
-const razorpayInstance = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-})
+const getRazorpayInstance = () => {
+    const keyId = process.env.RAZORPAY_KEY_ID
+    const keySecret = process.env.RAZORPAY_KEY_SECRET
+
+    if (!keyId || !keySecret) {
+        throw new Error('Razorpay keys are missing in backend .env')
+    }
+
+    return new Razorpay({
+        key_id: keyId,
+        key_secret: keySecret
+    })
+}
 
 export const createOrder = async (req, res) => {
     try {
+        const razorpayInstance = getRazorpayInstance()
         const { amount, currency = 'INR', receipt } = req.body
         if (!amount || isNaN(amount)) return res.status(400).json({ success: false, message: 'Invalid amount' })
 
@@ -28,6 +38,10 @@ export const createOrder = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
     try {
+        if (!process.env.RAZORPAY_KEY_SECRET) {
+            return res.status(500).json({ success: false, message: 'Razorpay secret is missing in backend .env' })
+        }
+
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature, appointmentId } = req.body
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
             return res.status(400).json({ success: false, message: 'Missing payment fields' })

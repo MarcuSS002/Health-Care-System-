@@ -76,6 +76,42 @@ const loginUser = async (req, res) => {
     }
 }
 
+// api to reset user password via email
+const forgotPassword = async (req, res) => {
+    try {
+
+        const { email, newPassword } = req.body
+
+        if (!email || !newPassword) {
+            return res.json({ success: false, message: 'Missing details' })
+        }
+
+        if (!validator.isEmail(email)) {
+            return res.json({ success: false, message: 'Invalid Email address' })
+        }
+
+        if (newPassword.length < 8) {
+            return res.json({ success: false, message: 'Enter a strong password' })
+        }
+
+        const user = await userModel.findOne({ email })
+        if (!user) {
+            return res.json({ success: false, message: 'User does not exist' })
+        }
+
+        const salt = await bcrypt.genSalt(10)
+        const hashedPassword = await bcrypt.hash(newPassword, salt)
+
+        await userModel.findByIdAndUpdate(user._id, { password: hashedPassword })
+
+        res.json({ success: true, message: 'Password updated successfully' })
+
+    } catch (error) {
+        console.log(error)
+        res.json({ success: false, message: error.message })
+    }
+}
+
 // api to get user profile
 const getProfile = async (req, res) => {
     try {
@@ -200,9 +236,13 @@ const cancelAppointment = async (req,res) => {
         const { userId, appointmentId} = req.body
         const appointmentData =await appointmentModel.findById(appointmentId)
 
+        if (!appointmentData) {
+            return res.json({ success: false, message: 'Appointment not found' })
+        }
+
         //verify appointment user
-        if(appointmentData.userId !== userId) {
-            return res.json({success:false, message:'Unauthorized action'})
+        if (appointmentData.userId.toString() !== userId) {
+            return res.json({ success: false, message: 'Unauthorized action' })
         }
 
         await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true})
@@ -210,10 +250,25 @@ const cancelAppointment = async (req,res) => {
         //releasing doctor slot
         const { docId, slotDate, slotTime } = appointmentData
         const docData = await doctorModel.findById(docId)
-        let slots_booked = docData.slots_booked
 
-        slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
-        await doctorModel.findByIdAndUpdate(docId, {slots_booked})
+        if (!docData) {
+            return res.json({ success: false, message: 'Doctor not found' })
+        }
+
+        // ensure slots_booked is an object
+        let slots_booked = docData.slots_booked || {}
+
+        // ensure the date array exists before filtering
+        if (Array.isArray(slots_booked[slotDate])) {
+            slots_booked[slotDate] = slots_booked[slotDate].filter(e => e !== slotTime)
+
+            // if no slots left for that date, remove the key
+            if (slots_booked[slotDate].length === 0) {
+                delete slots_booked[slotDate]
+            }
+
+            await doctorModel.findByIdAndUpdate(docId, { slots_booked })
+        }
 
         res.json({success:true, message:'Appointment Cancelled'})
         
@@ -223,4 +278,4 @@ const cancelAppointment = async (req,res) => {
     }
 }
 
-export { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment }
+export { registerUser, loginUser, forgotPassword, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment }

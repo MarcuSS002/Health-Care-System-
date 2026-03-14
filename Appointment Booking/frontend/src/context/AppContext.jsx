@@ -74,11 +74,13 @@ const AppContextProvider = (props) => {
 
   useEffect(() => {
     if (token) {
-      loadUserProfileData();
+      if (!userData) {
+        loadUserProfileData();
+      }
     } else {
       setUserData(false);
     }
-  }, [token]);
+  }, [token, userData]);
 
   // Keep localStorage in sync so profile is available on revisit
   useEffect(() => {

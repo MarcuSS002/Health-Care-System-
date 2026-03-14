@@ -15,7 +15,7 @@ const Login = () => {
 
   const navigate = useNavigate()
 
-  const { token, setToken, backendUrl} = useContext(AppContext)
+  const { token, setToken, setUserData, backendUrl} = useContext(AppContext)
 
   const onSubmitHandler = async (e) => {
     e.preventDefault()
@@ -44,9 +44,14 @@ const Login = () => {
         const { data } = await axios.post(backendUrl + '/api/user/register', {name, password, email})
         if(data.success) {
           localStorage.setItem('token', data.token)
+          if (data.userData) {
+            localStorage.setItem('userData', JSON.stringify(data.userData))
+            setUserData(data.userData)
+          }
           setToken(data.token)
           toast.success('Registered')
           setIsLogin(true)
+          navigate('/')
         } else {
           toast.error(data.message)
         }
@@ -54,7 +59,12 @@ const Login = () => {
         const { data } = await axios.post(backendUrl + '/api/user/login', { password, email})
         if(data.success) {
           localStorage.setItem('token', data.token)
+          if (data.userData) {
+            localStorage.setItem('userData', JSON.stringify(data.userData))
+            setUserData(data.userData)
+          }
           setToken(data.token)
+          navigate('/')
         } else {
           toast.error(data.message)
         }

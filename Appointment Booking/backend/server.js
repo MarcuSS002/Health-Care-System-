@@ -17,12 +17,21 @@ dotenv.config({ path: path.join(__dirname, '.env') })
 //app config
 const app = express()
 const port = Number(process.env.PORT) || 3001
-connectDB()
-connectCloudinary()
+const startupPromise = Promise.all([connectDB(), connectCloudinary()])
 
 //middlewares
 app.use(express.json())
 app.use(cors())
+
+app.use(async (req, res, next) => {
+    try {
+        await startupPromise
+        next()
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ success: false, message: 'Server initialization failed' })
+    }
+})
 
 //api endpoints
 app.use('/api/admin', adminRouter)
@@ -35,6 +44,16 @@ app.get('/', (req, res) => {
     res.send("Api working")
 })
 
-app.listen(port, () => {
-    console.log(`Server Listening on port ${port}`)
-})
+if (!process.env.VERCEL) {
+    startupPromise
+        .then(() => {
+            app.listen(port, () => {
+                console.log(`Server Listening on port ${port}`)
+            })
+        })
+        .catch((error) => {
+            console.log(error)
+        })
+}
+
+export default app

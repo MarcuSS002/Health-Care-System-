@@ -8,6 +8,17 @@ import { v2 as cloudinary } from 'cloudinary'
 import doctorModel from '../models/doctorModel.js'
 import appointmentModel from '../models/appointmentModel.js'
 
+const buildSafeUser = (user) => ({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    image: user.image,
+    address: user.address,
+    gender: user.gender,
+    dob: user.dob,
+    phone: user.phone,
+})
+
 //Api to register user
 const registerUser = async (req, res) => {
     try {
@@ -40,7 +51,7 @@ const registerUser = async (req, res) => {
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
 
-        res.json({ success: true, token })
+        res.json({ success: true, token, userData: buildSafeUser(user) })
 
     } catch (error) {
         console.log(error)
@@ -65,7 +76,7 @@ const loginUser = async (req, res) => {
 
         if (isMatch) {
             const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET)
-            res.json({ success: true, token })
+            res.json({ success: true, token, userData: buildSafeUser(user) })
         } else {
             res.json({ success: false, message: 'Invalid credentials' })
         }

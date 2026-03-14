@@ -27,12 +27,3 @@
     }
   ]
 }
-
-/*
-Short answer: vercel.json helps, but it does not fully solve the lag by itself.
-
-What it fixes:
-
-Correct Vercel routing/build behavior for your monorepo.
-Sends /api/* to backend and serves frontend SPA correctly.
-With the server.js export change, avoids one major runtime mismatch.*/
